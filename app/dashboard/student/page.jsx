@@ -91,6 +91,23 @@ function OverviewCard({ icon: Icon, title, value, subtitle }) {
     </motion.div>
   );
 }
+// 🔔 PAYMENT HELPERS (ADD)
+const formatDDMMYYYY = (d) => {
+  if (!d) return null;
+  const dt = new Date(d);
+  return `${String(dt.getDate()).padStart(2, "0")}-${String(
+    dt.getMonth() + 1
+  ).padStart(2, "0")}-${dt.getFullYear()}`;
+};
+
+const isPastDate = (d) => {
+  if (!d) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(d);
+  target.setHours(0, 0, 0, 0);
+  return today > target;
+};
 
 /* ---------- Page component (fetch + state) ---------- */
 export default function StudentDashboard() {
@@ -98,9 +115,23 @@ export default function StudentDashboard() {
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+// 🔔 PAYMENT REMINDER STATE (ADD)
+const [paymentInfo, setPaymentInfo] = useState(null);
+const [paymentLoading, setPaymentLoading] = useState(true);
+// 🔔 POPUP STATE
+const [showDuePopup, setShowDuePopup] = useState(false);
+
+const [dueTomorrow, setDueTomorrow] = useState(false);
+// 🔔 CLASS REMINDER STATE
+const [nextClass, setNextClass] = useState(null);
+const [showClassPopup, setShowClassPopup] = useState(false);
+const [remainingMins, setRemainingMins] = useState(null);
+
 
   const [studentProgress, setStudentProgress] = useState([]); // single latest or empty
   const [studentProgressLoading, setStudentProgressLoading] = useState(true);
+
+  
 
   useEffect(() => {
     if (status === "loading") return;
@@ -129,6 +160,24 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
     }
+// 🔔 FETCH PAYMENT STATUS (ADD)
+try {
+  setPaymentLoading(true);
+  const res = await fetch("/api/student/payment-status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: session?.user?.email }),
+  });
+
+  if (res.ok) {
+    setPaymentInfo(await res.json());
+  }
+} catch (err) {
+  console.error("Payment status fetch failed", err);
+} finally {
+  setPaymentLoading(false);
+}
+
 
     // get coach-added progress and keep only latest
     try {
@@ -149,10 +198,77 @@ export default function StudentDashboard() {
     } finally {
       setStudentProgressLoading(false);
     }
+// 🔔 FETCH UPCOMING CLASS
+try {
+  const res = await fetch("/api/student/upcoming-class", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: session?.user?.email }),
+  });
+
+  if (res.ok) {
+    const j = await res.json();
+    if (j?.class) setNextClass(j.class);
+  }
+} catch (err) {
+  console.log("Upcoming class fetch failed", err);
+}
+
+
   };
 
+useEffect(() => {
+  if (!paymentInfo || paymentInfo?.paid) return;
+  const due = paymentInfo?.due_date;
+  if (!due) return;
+
+  // force date-only (prevents timezone issues)
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  const d = new Date(due);
+  const dueDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  const diffDays = Math.ceil((dueDate - todayDate) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 1) {
+    setShowDuePopup(true);
+    setDueTomorrow(true);
+  }
+}, [paymentInfo]);
+// 🔔 CLASS REMINDER CHECKER
+useEffect(() => {
+  if (!nextClass) return;
+
+  const checkReminder = () => {
+    const now = new Date();
+
+    const classDate = new Date(nextClass.date);
+    const [hh, mm] = nextClass.time.split(":").map(Number);
+    classDate.setHours(hh, mm, 0, 0);
+
+    const diffMinutes = Math.floor((classDate - now) / 60000);
+
+    if (diffMinutes <= 15 && diffMinutes > 0) {
+      setShowClassPopup(true);
+      setRemainingMins(diffMinutes);
+    } else {
+      setShowClassPopup(false);
+      setRemainingMins(null);
+    }
+  };
+
+  checkReminder();
+  const interval = setInterval(checkReminder, 60000);
+  return () => clearInterval(interval);
+}, [nextClass]);
+
+
+
+  
   if (status === "loading" || loading) {
     return (
+      
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-10 w-10 animate-spin" />
       </div>
@@ -161,6 +277,7 @@ export default function StudentDashboard() {
 
   if (!session) {
     return (
+      
       <div className="container px-4 py-8">
         <h2 className="text-xl font-semibold">Please sign in to see your dashboard</h2>
       </div>
@@ -174,8 +291,102 @@ export default function StudentDashboard() {
   const assessmentsCompleted = assessments.length;
   const activeCourses = stats?.activeCourses ?? [];
 
+
   return (
+    
     <div className="container px-4 py-8 space-y-8">
+      {dueTomorrow && (
+  <motion.div
+    initial={{ opacity: 0, y: -6 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="flex justify-center"
+  >
+    <div className="px-5 py-3 rounded-lg border border-yellow-400 bg-yellow-100 text-yellow-800 text-sm font-semibold shadow-sm">
+      ⚠️ Reminder: Your payment due date is tomorrow. Please complete your payment soon.
+    </div>
+  </motion.div>
+)}
+
+{/* ✅ PAYMENT STATUS BADGE */}
+{showDuePopup && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+  >
+    <Card className="w-[400px] shadow-xl">
+      <CardContent className="p-6 text-center">
+        <h2 className="text-xl font-bold mb-2 text-red-600">
+          Payment Due Reminder
+        </h2>
+
+        <p className="text-sm text-slate-600 mb-4">
+          Your chess course payment is due tomorrow.
+          Please complete your payment to continue uninterrupted learning.
+        </p>
+
+        <div className="flex gap-3 justify-center">
+          <Button variant="secondary" onClick={() => setShowDuePopup(false)}>
+            Later
+          </Button>
+
+       <Button onClick={() => router.push("/dashboard/student/Payment")}>
+  Pay Now
+</Button>
+
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+      )}      
+      {showClassPopup && nextClass && (
+  <motion.div
+    initial={{ opacity: 0, y: -6 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="w-full flex justify-end"
+  >
+    <div className="px-5 py-3 rounded-lg border border-blue-400 bg-blue-100 text-blue-800 text-sm font-semibold shadow-sm">
+      ⏰ Class in <b>{remainingMins} mins</b> • 
+      <b> {nextClass.class_name}</b> • {nextClass.level}
+
+      {nextClass.meet_link && (
+        <Button
+          className="ml-3"
+          size="sm"
+          onClick={() => window.open(nextClass.meet_link, "_blank")}
+        >
+          Join Now
+        </Button>
+      )}
+    </div>
+  </motion.div>
+)}
+
+
+
+{/* {!paymentLoading && paymentInfo && (
+  <motion.div
+    initial={{ opacity: 0, y: -4 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="flex justify-center"
+  >
+    <div
+      className={`px-4 py-2 rounded-full text-sm font-semibold border
+        ${
+          paymentInfo.paid
+            ? "bg-green-100 text-green-700 border-green-300"
+            : "bg-yellow-100 text-yellow-700 border-yellow-300"
+        }`}
+    >
+      {paymentInfo.paid
+        ? "✅ Payment Status: PAID"
+        : "⏳ Payment Status: PENDING"}
+    </div>
+  </motion.div>
+)} */}
+
+
+
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold">Welcome Back</h1>

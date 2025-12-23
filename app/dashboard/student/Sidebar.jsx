@@ -29,11 +29,18 @@ const Sidebar = () => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/student" },
-    { icon: BookOpen, label: "My Courses", href: "/dashboard/student/courses" },
+    { icon: BookOpen, label: "My Course", href: "/dashboard/student/courses" },
+     { icon: BookOpen, label: "Tournament Performance", href: "/dashboard/student/tournament" },
     // Course Video now points to dashboard page that resolves registered course
     // { icon: Video, label: "Course video", href: "/dashboard/student/course-videos" },
-    { icon: BarChart3, label: "Progress Tracker", href: "/dashboard/student/progress" },
+     { icon: BarChart3, label: "Attendance", href: "/dashboard/student/attendance" },
+     { icon: BookOpen, label: "Home Work & Assignments", href: "/dashboard/student/homework" },
+      { icon: BookOpen, label: "Study Plan", href: "/dashboard/student/studyplan" },
+       { icon: BookOpen, label: "Tournament Recommendations", href: "/dashboard/student/tournament-recommendations" },
+    { icon: BarChart3, label: "Course Progress", href: "/dashboard/student/progress" },
+     { icon: BarChart3, label: "Progress Tracker", href: "/dashboard/student/tracker" },
     { icon: Video, label: "Free Demo Class", href: "/dashboard/student/demo-class" },
+    { icon: Video, label: "Compensation Scheduled", href: "/dashboard/student/compensation" },
     // { icon: FileText, label: "Assessment", href: "/dashboard/student/assessment" },
     { icon: CalendarClock, label: "Schedule", href: "/dashboard/student/schedule" },
     { icon: CreditCard, label: "Payment", href: "/dashboard/student/Payment" },

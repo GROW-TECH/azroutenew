@@ -1,8 +1,18 @@
+<<<<<<< HEAD
 ﻿export const dynamic = "force-dynamic";
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+=======
+﻿'use client';
+
+export const dynamic = "force-dynamic";
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+>>>>>>> monisha
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';

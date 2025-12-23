@@ -44,11 +44,11 @@ export default function StudentCourseListPage() {
       try {
         const email = session.user.email;
         // fetch student including student-level due fields
-        const { data: student, error } = await supabase
-          .from("student_list")
-          .select("id, course, level, due_date, due_note, status")
-          .eq("email", email)
-          .single();
+       const { data: student, error } = await supabase
+  .from("student_list")
+  .select("id, course, level, stage1, due_date, due_note, status")
+  .eq("email", email)
+  .single();
 
         if (error || !student) {
           console.error("Failed to fetch student row:", error);
@@ -97,10 +97,16 @@ export default function StudentCourseListPage() {
           levelsArray = [String(rawLevel)];
         }
 
-        const final = coursesArray.map((title, idx) => {
-          const level = levelsArray[idx] ?? (levelsArray[0] ?? "");
-          return { title, level, studentId: student.id };
-        });
+const final = coursesArray.map((title, idx) => {
+  const level = levelsArray[idx] ?? (levelsArray[0] ?? "");
+  return {
+    title,
+    level,
+    stage1: student.stage1,   // ✅ ADD THIS
+    studentId: student.id,
+  };
+});
+
 
         setAssignedCourses(final);
 
@@ -201,7 +207,7 @@ export default function StudentCourseListPage() {
     }
     setOpenCourse(course.title);
     // fetch classes if not already loaded
-    if (!classesByCourse[course.title]) fetchClassesFor(course.title, course.level);
+    if (!classesByCourse[course.title]) fetchClassesFor(course.title, course.level,course.stage);
   };
 
   useEffect(() => {
@@ -390,6 +396,7 @@ export default function StudentCourseListPage() {
 
               <CardContent>
                 <p className="text-xs text-gray-500 mb-2">Level: {c.level || "Not specified"}</p>
+                <p className="text-xs text-gray-500 mb-2">stage: {c.stage1 || "Not specified"}</p>
 
                 {openCourse === c.title && (
                   <div className="mt-3 border rounded-md p-3 bg-gray-50">

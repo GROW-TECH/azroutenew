@@ -18,6 +18,7 @@ import { Badge } from "../../../components/ui/badge";
  */
 
 export default function PaymentPage() {
+  
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -35,6 +36,7 @@ export default function PaymentPage() {
 
   const studentChannelRef = useRef(null);
   const paymentsChannelRef = useRef(null);
+  
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -78,7 +80,32 @@ export default function PaymentPage() {
       } finally {
         setLoading(false);
       }
+      const downloadReceipt = async (paymentId) => {
+  try {
+    const res = await fetch(
+      `/api/student/paymentsreceipt?payment_id=${paymentId}`
+    );
+
+    if (!res.ok) throw new Error("Download failed");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `receipt_${paymentId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Unable to download receipt. Contact admin.");
+  }
+};
+
     };
+
 
     load();
   }, [session, status]);
@@ -182,6 +209,29 @@ export default function PaymentPage() {
   const studentDueRaw = student?.due_date || null;
   const dueToUseRaw = paymentDueRaw || studentDueRaw || null;
   const dueToShow = dueToUseRaw ? formatDateDDMMYYYY(dueToUseRaw) : null;
+  // ================= RECEIPT DOWNLOAD =================
+const downloadReceipt = async (paymentId) => {
+  try {
+    const res = await fetch(`/api/student/paymentsreceipt?payment_id=${paymentId}`);
+    if (!res.ok) throw new Error("Failed to download receipt");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `receipt_${paymentId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert("Unable to download receipt. Contact admin.");
+  }
+};
+
   const paymentNoteToShow = latest?.note || student?.due_note || null;
 
   // if due exists and is past and student not paid -> locked
@@ -419,11 +469,7 @@ export default function PaymentPage() {
                     </div>
                   )}
                 </div>
-                <div className="text-right">
-                  <div className="inline-flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-emerald-600 text-white text-sm">Paid</span>
-                  </div>
-                </div>
+               
               </div>
             )}
 
@@ -431,15 +477,17 @@ export default function PaymentPage() {
             <div className="p-4">
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-muted-foreground">
-                      <th className="py-2 pr-4">Date</th>
-                      <th className="py-2 pr-4">Amount</th>
-                      <th className="py-2 pr-4">Mode</th>
-                      <th className="py-2 pr-4">Status</th>
-                      <th className="py-2 pr-4">Due (if any)</th>
-                    </tr>
-                  </thead>
+                 <thead>
+  <tr className="text-left text-muted-foreground">
+    <th className="py-2 pr-4">Date</th>
+    <th className="py-2 pr-4">Amount</th>
+    <th className="py-2 pr-4">Mode</th>
+    <th className="py-2 pr-4">Status</th>
+    <th className="py-2 pr-4">Due</th>
+    <th className="py-2 pr-4">Invoice </th>
+  </tr>
+</thead>
+
                   <tbody>
                     {payments.map((p) => {
                       const pDue = p.due_date ? formatDateDDMMYYYY(p.due_date) : (student.due_date ? formatDateDDMMYYYY(student.due_date) : "—");
@@ -454,6 +502,25 @@ export default function PaymentPage() {
                             </span>
                           </td>
                           <td className="py-3 pr-4">{pDue}</td>
+                          <td className="py-3 pr-4">
+  {p.status?.toLowerCase() === "paid" ? (
+    <Button
+  size="sm"
+  variant="outline"
+  className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+  onClick={() => downloadReceipt(p.id)}
+>
+  Download invoice
+</Button>
+
+
+
+
+  ) : (
+    <span className="text-xs text-muted-foreground">—</span>
+  )}
+</td>
+
                         </tr>
                       );
                     })}
