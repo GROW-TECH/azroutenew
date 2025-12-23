@@ -1,0 +1,12 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/narentolk/public_html/azrouteApp"
+PassengerBaseURI "/azrouteApp"
+PassengerNodejs "/home/narentolk/nodevenv/public_html/azrouteApp/24/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+PassengerAppLogFile "/home/narentolk/azroute/logs/logs.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+PassengerAppRoot /home/narentolk/public_html/azrouteApp
+PassengerBaseURI /azrouteApp
+PassengerAppType node
+PassengerStartupFile server.js
