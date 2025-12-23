@@ -1,18 +1,8 @@
-<<<<<<< HEAD
 ﻿export const dynamic = "force-dynamic";
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-=======
-﻿'use client';
-
-export const dynamic = "force-dynamic";
-
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-
->>>>>>> monisha
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Input } from "@/app/components/ui/input";
 import { Button } from "@/app/components/ui/button";
