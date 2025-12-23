@@ -27,6 +27,9 @@ export default function AttendancePage() {
   const [leaveReason, setLeaveReason] = useState("");
   const [leaveMode, setLeaveMode] = useState(false);
 
+  const [coachId, setCoachId] = useState(null);
+  const [coachName, setCoachName] = useState("");
+
   const today = new Date();
   const todayStr = formatDate(today);
 
@@ -41,46 +44,58 @@ export default function AttendancePage() {
     formatDate(new Date(year, month, i + 1))
   );
 
-  /* LOAD ATTENDANCE */
+  /* LOAD COACH */
   useEffect(() => {
-    const loadAttendance = async () => {
+    const loadCoach = async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) return;
 
+      const { data } = await supabase
+        .from("coaches")
+        .select("id, name")
+        .eq("created_by", auth.user.id)
+        .single();
+
+      if (data) {
+        setCoachId(data.id);
+        setCoachName(data.name);
+      }
+    };
+
+    loadCoach();
+  }, []);
+
+  /* LOAD ATTENDANCE */
+  useEffect(() => {
+    if (!coachId) return;
+
+    const loadAttendance = async () => {
       const start = formatDate(new Date(year, month, 1));
       const end = formatDate(new Date(year, month + 1, 0));
 
       const { data } = await supabase
         .from("coach_attendance")
         .select("date, status, leave_status")
-        .eq("coach_id", auth.user.id)
+        .eq("coach_id", coachId)
         .gte("date", start)
         .lte("date", end);
 
       const map = {};
-      data?.forEach(row => {
-        map[row.date] = row;
-      });
-
+      data?.forEach(row => (map[row.date] = row));
       setAttendance(map);
     };
 
     loadAttendance();
-  }, [month, year]);
-
-  const isFutureDate = selectedDate
-    ? new Date(selectedDate) > new Date(todayStr)
-    : false;
+  }, [coachId, month, year]);
 
   const markAttendance = async (status) => {
-    if (!selectedDate) return;
+    if (!selectedDate || !coachId) return;
 
     setLoading(true);
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth?.user) return setLoading(false);
 
     await supabase.from("coach_attendance").upsert({
-      coach_id: auth.user.id,
+      coach_id: coachId,
+      coach_name: coachName,
       date: selectedDate,
       status,
       leave_reason: status === "leave" ? leaveReason : null,
@@ -108,12 +123,30 @@ export default function AttendancePage() {
     );
   }
 
+  const selectedAttendance = selectedDate
+    ? attendance[selectedDate]
+    : null;
+
+  /* 📊 MONTHLY CALCULATION */
+  const totalDays = daysInMonth;
+
+  const presentCount = Object.values(attendance).filter(a => a.status === "present").length;
+  const absentCount = Object.values(attendance).filter(a => a.status === "absent").length;
+  const leaveCount = Object.values(attendance).filter(a => a.status === "leave").length;
+
+  const notMarkedCount =
+    totalDays - (presentCount + absentCount + leaveCount);
+
+  const presentPercent = Math.round((presentCount / totalDays) * 100);
+  const absentPercent = Math.round((absentCount / totalDays) * 100);
+  const leavePercent = Math.round((leaveCount / totalDays) * 100);
+  const notMarkedPercent = Math.round((notMarkedCount / totalDays) * 100);
+
   return (
     <div className="p-8 space-y-6">
       <h2 className="text-3xl font-bold">Attendance</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* CALENDAR */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex justify-between flex-row">
@@ -128,7 +161,9 @@ export default function AttendancePage() {
 
           <CardContent>
             <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
-              {weekDays.map(d => <div key={d} className="text-center">{d}</div>)}
+              {weekDays.map(d => (
+                <div key={d} className="text-center">{d}</div>
+              ))}
             </div>
 
             <div className="grid grid-cols-7 gap-2">
@@ -140,12 +175,11 @@ export default function AttendancePage() {
 
                 if (row?.status === "present") color = "bg-emerald-500 text-white";
                 if (row?.status === "absent") color = "bg-red-500 text-white";
-
                 if (row?.status === "leave") {
                   color =
                     row.leave_status === "approved"
-                      ? "bg-yellow-400 text-black"
-                      : "bg-yellow-200 text-black border border-dashed border-yellow-600";
+                      ? "bg-yellow-400"
+                      : "bg-yellow-200 border border-dashed";
                 }
 
                 return (
@@ -166,7 +200,7 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
 
-        {/* ACTION CARD */}
+        {/* ACTION CARD – FIXED */}
         <Card>
           <CardHeader>
             <CardTitle>Mark Attendance</CardTitle>
@@ -177,49 +211,83 @@ export default function AttendancePage() {
               <>
                 <p className="text-sm font-medium">{selectedDate}</p>
 
-                <div className="flex gap-2">
-                  <Button
-                    disabled={isFutureDate}
-                    onClick={() => markAttendance("present")}
-                  >
-                    Present
-                  </Button>
-
-                  <Button
-                    variant="destructive"
-                    disabled={isFutureDate}
-                    onClick={() => markAttendance("absent")}
-                  >
-                    Absent
-                  </Button>
-
-                  <Button variant="outline" onClick={() => setLeaveMode(true)}>
-                    Leave
-                  </Button>
-                </div>
-
-                {leaveMode && (
+                {selectedAttendance ? (
+                  <div className="text-sm font-semibold">
+                    {selectedAttendance.status === "present" && (
+                      <span className="text-emerald-600">✔ Already marked as Present</span>
+                    )}
+                    {selectedAttendance.status === "absent" && (
+                      <span className="text-red-600">✖ Already marked as Absent</span>
+                    )}
+                    {selectedAttendance.status === "leave" && (
+                      <span className="text-yellow-700">
+                        ⏳ Leave submitted ({selectedAttendance.leave_status})
+                      </span>
+                    )}
+                  </div>
+                ) : (
                   <>
-                    <textarea
-                      value={leaveReason}
-                      onChange={e => setLeaveReason(e.target.value)}
-                      placeholder="Leave reason"
-                      className="w-full border rounded-md p-2 text-sm"
-                    />
-                    <Button
-                      disabled={!leaveReason}
-                      onClick={() => markAttendance("leave")}
-                    >
-                      Submit Leave (Admin Approval)
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={() => markAttendance("present")}>Present</Button>
+                      <Button variant="destructive" onClick={() => markAttendance("absent")}>
+                        Absent
+                      </Button>
+                      <Button variant="outline" onClick={() => setLeaveMode(true)}>
+                        Leave
+                      </Button>
+                    </div>
+
+                    {leaveMode && (
+                      <>
+                        <textarea
+                          value={leaveReason}
+                          onChange={e => setLeaveReason(e.target.value)}
+                          placeholder="Leave reason"
+                          className="w-full border rounded-md p-2 text-sm"
+                        />
+                        <Button disabled={!leaveReason} onClick={() => markAttendance("leave")}>
+                          Submit Leave
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </>
             )}
           </CardContent>
         </Card>
-
       </div>
+
+      {/* 📊 MONTHLY ATTENDANCE GRAPH */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Monthly Attendance Graph ({monthNames[month]})
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {[
+            { label: "Present", count: presentCount, percent: presentPercent, color: "bg-emerald-500" },
+            { label: "Absent", count: absentCount, percent: absentPercent, color: "bg-red-500" },
+            // { label: "Leave", count: leaveCount, percent: leavePercent, color: "bg-yellow-400" },
+            // { label: "Not Marked", count: notMarkedCount, percent: notMarkedPercent, color: "bg-gray-400" },
+          ].map(item => (
+            <div key={item.label}>
+              <div className="flex justify-between text-sm">
+                <span>{item.label} ({item.count})</span>
+                <span>{item.percent}%</span>
+              </div>
+              <div className="h-3 bg-gray-200 rounded">
+                <div
+                  className={`h-3 ${item.color} rounded`}
+                  style={{ width: `${item.percent}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }

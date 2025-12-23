@@ -102,12 +102,14 @@ export default function StudentsPage() {
 
   // Export CSV for currently visible (filtered) students
   const exportCSV = () => {
-    const header = ["Reg No / ID", "Name","Course", "Level"];
+    const header = ["Reg No / ID", "Name","Course", "Level" ,"Stage" ,"Batch time"];
     const rows = filtered.map((s) => [
       s.reg_no ?? s.id,
       s.name ?? "",
       s.course ?? "",
       s.level ?? "",
+      s.stage1 ?? "",
+      s.batch_time ?? "",
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((x) => `"${String(x ?? "").replace(/"/g, '""')}"`).join(","))
@@ -184,7 +186,9 @@ export default function StudentsPage() {
                     <TableHead>Name</TableHead>
                     
                     <TableHead>Course</TableHead>
-                    <TableHead>Level</TableHead>
+                      <TableHead>Level</TableHead>
+                      <TableHead>Stage</TableHead>
+                      <TableHead>Batch Time</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -208,6 +212,8 @@ export default function StudentsPage() {
                          
                           <TableCell>{s.course}</TableCell>
                           <TableCell>{s.level}</TableCell>
+                          <TableCell>{s.stage1 || "-"}</TableCell>
+                          <TableCell>{s.batch_time || "-"}</TableCell>
                           
                         </TableRow>
                       );

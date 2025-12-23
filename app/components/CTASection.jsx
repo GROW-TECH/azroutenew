@@ -11,9 +11,7 @@ export default function CTASection() {
             <h2 className="text-3xl font-bold mb-4">
               Ready to Start Your Learning Journey?
             </h2>
-            <p className="text-xl mb-8">
-              Join thousands of dental professionals improving their skills with ConnectEd
-            </p>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="secondary" size="lg">
                 Browse Courses

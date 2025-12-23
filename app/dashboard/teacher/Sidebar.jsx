@@ -67,13 +67,25 @@ const Sidebar = () => {
   const menuItems = [
     { icon: Layout, label: "Dashboard", href: "/dashboard/teacher" },
     { icon: Book, label: "Assigned Courses", href: "/dashboard/teacher/courses" },
+    { icon: Book, label: "Academy Curriculum", href: "/dashboard/teacher/library" },
     { icon: Users, label: "Students", href: "/dashboard/teacher/students" },
+    { icon: FileText, label: "Feedback to Students", href: "/dashboard/teacher/feedback" },
     { icon: TrendingUp, label: "Students Progress", href: "/dashboard/teacher/progress" },
+    { icon: Users, label: "Homework & Assignments", href: "/dashboard/teacher/homework" },
+    { icon: Users, label: "Homework's Report", href: "/dashboard/teacher/homework-review" },
+        { icon: Users, label: "Student's Study Plan", href: "/dashboard/teacher/studyplan" },
+
     // { icon: ClipboardList, label: "Assessments Marks", href: "/dashboard/teacher/assessment" },
     { icon: ClipboardList, label: "Attendance", href: "/dashboard/teacher/attendance" },
-    { icon: Calendar, label: "Events", href: "/dashboard/teacher/events" },
+    { icon: ClipboardList, label: "Student's Attendence", href: "/dashboard/teacher/student-attendance" },
+    { icon: ClipboardList, label: "Compensation Classes", href: "/dashboard/teacher/compensation" },
+    { icon: TrendingUp, label: "Student Analytics", href: "/dashboard/teacher/student-analytics" },
+    { icon: TrendingUp, label: "Student-Strengths & weakness analysis", href: "/dashboard/teacher/StrengthFeedback" },
+    { icon: Calendar, label: "Tournament Recommendation", href: "/dashboard/teacher/tournaments" },
     { icon: MessageSquare, label: "Live Classes", href: "/dashboard/teacher/liveclasses" },
     { icon: Video, label: "Demo Class", href: "/dashboard/teacher/demo-class" },
+        { icon: Calendar, label: "Events", href: "/dashboard/teacher/events" },
+
   ];
 
   return (
