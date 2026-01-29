@@ -47,24 +47,48 @@ const HowItWorksPage = () => {
       <div className="mt-12">
         <Card className="p-6">
           <CardContent>
-            <h2 className="text-2xl font-semibold mb-4 text-center">Additional Features</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">For Teachers</h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li>Flexible scheduling options</li>
-                  <li>Built-in lesson planning tools</li>
-                  <li>Automated payment processing</li>
-                  <li>Professional development resources</li>
+            <h2 className="text-2xl font-semibold mb-6 text-center">Additional Features</h2>
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-4">For Teachers</h3>
+                <ul className="text-gray-600 space-y-2 inline-block text-left">
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Flexible scheduling options</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Built-in lesson planning tools</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Automated payment processing</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Professional development resources</span>
+                  </li>
                 </ul>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">For Students</h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li>Personalized learning paths</li>
-                  <li>Access to learning materials</li>
-                  <li>Progress tracking dashboard</li>
-                  <li>24/7 support access</li>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-4">For Students</h3>
+                <ul className="text-gray-600 space-y-2 inline-block text-left">
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Personalized learning paths</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Access to learning materials</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>Progress tracking dashboard</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">•</span>
+                    <span>24/7 support access</span>
+                  </li>
                 </ul>
               </div>
             </div>

@@ -1,13 +1,14 @@
 // app/components/CertificatesPage.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
-import { FiX, FiAward, FiChevronRight } from "react-icons/fi";
+import { FiX, FiAward, FiChevronRight, FiChevronLeft } from "react-icons/fi";
 
 export default function CertificatesPage() {
   const [modalSrc, setModalSrc] = useState("");
   const [currentCertificateIndex, setCurrentCertificateIndex] = useState(0);
+  const scrollContainerRef = useRef(null);
 
   const certificates = [
     "/images/balkishan_profile.jpeg",
@@ -28,6 +29,21 @@ export default function CertificatesPage() {
     setCurrentCertificateIndex((prev) => (prev + 1) % certificates.length);
   };
 
+  const handleScroll = (direction) => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 340; // width of card + gap
+      const newPosition =
+        direction === "left"
+          ? scrollContainerRef.current.scrollLeft - scrollAmount
+          : scrollContainerRef.current.scrollLeft + scrollAmount;
+      
+      scrollContainerRef.current.scrollTo({
+        left: newPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <section className="px-3 md:px-6 py-12 w-full overflow-hidden">
       {/* HEADER */}
@@ -38,40 +54,55 @@ export default function CertificatesPage() {
         </h2>
       </header>
 
-      {/* AUTO SCROLL */}
-      <div className="relative w-full overflow-hidden">
-        <div className="flex gap-4 py-4 animate-scroll w-max">
-          {scrollList.map((src, i) => (
-            <button
-              key={`${src}-${i}`}
-              onClick={() => setModalSrc(src)}
-              className="flex-shrink-0 w-[180px] h-[130px] sm:w-[260px] sm:h-[190px] md:w-[320px] md:h-[220px] bg-white rounded-xl border border-gray-100 shadow-md hover:shadow-xl transition"
-            >
-              <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden">
-                <div className="relative w-full h-full p-2 sm:p-3">
-                  <Image
-                    src={src}
-                    alt={`Certificate ${i + 1}`}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* NEXT BUTTON */}
-      <div className="flex justify-center mt-6">
+      {/* AUTO SCROLL WITH NAVIGATION */}
+      <div className="relative w-full">
+        {/* PREVIOUS BUTTON */}
         <button
-          onClick={handleNextCertificate}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md"
+          onClick={() => handleScroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 rounded-full p-3 shadow-lg border border-gray-200 transition-all hover:scale-110"
+          aria-label="Previous certificates"
         >
-          Next Achievement
-          <FiChevronRight size={20} />
+          <FiChevronLeft size={24} className="text-gray-700" />
+        </button>
+
+        {/* SCROLLABLE CONTAINER */}
+        <div
+          ref={scrollContainerRef}
+          className="overflow-x-auto scrollbar-hide scroll-smooth"
+        >
+          <div className="flex gap-4 py-4 animate-scroll w-max px-12">
+            {scrollList.map((src, i) => (
+              <button
+                key={`${src}-${i}`}
+                onClick={() => setModalSrc(src)}
+                className="flex-shrink-0 w-[180px] h-[130px] sm:w-[260px] sm:h-[190px] md:w-[320px] md:h-[220px] bg-white rounded-xl border border-gray-100 shadow-md hover:shadow-xl transition"
+              >
+                <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden">
+                  <div className="relative w-full h-full p-2 sm:p-3">
+                    <Image
+                      src={src}
+                      alt={`Certificate ${i + 1}`}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* NEXT BUTTON */}
+        <button
+          onClick={() => handleScroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white hover:bg-gray-50 rounded-full p-3 shadow-lg border border-gray-200 transition-all hover:scale-110"
+          aria-label="Next certificates"
+        >
+          <FiChevronRight size={24} className="text-gray-700" />
         </button>
       </div>
+
+    
 
       {/* MODAL */}
       {modalSrc && (
@@ -102,7 +133,7 @@ export default function CertificatesPage() {
         </div>
       )}
 
-      {/* FIXED AUTO SCROLL */}
+      {/* STYLES */}
       <style jsx>{`
         .animate-scroll {
           animation: scroll 45s linear infinite;
@@ -110,6 +141,15 @@ export default function CertificatesPage() {
 
         .animate-scroll:hover {
           animation-play-state: paused;
+        }
+
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
 
         @keyframes scroll {
