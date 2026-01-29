@@ -4,23 +4,19 @@ export default function WhyIs() {
   const steps = [
     {
       number: 1,
-      title: "Live Chess Academy with Expert Coaches",
+      title: "Online & Offline Trainings",
     },
     {
       number: 2,
-      title: "AI Training Tools",
+      title: "Tournaments & Special Camps",
     },
     {
       number: 3,
-      title: "Tournaments",
+      title: "Chess in Schools",
     },
     {
       number: 4,
-      title: "Classes",
-    },
-    {
-      number:5,
-      title:"Structure curriculum with periodiac progress review"
+      title: "Structured Curriculum & Progress Review",
     }
   ];
 
@@ -37,7 +33,7 @@ export default function WhyIs() {
         </div>
 
         {/* ✅ 4 boxes */}
-       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
+       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
 
           {steps.map((step) => (
             <CardWithHover key={step.number} className="text-center p-0">

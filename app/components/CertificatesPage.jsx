@@ -3,10 +3,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { FiX, FiAward } from "react-icons/fi";
+import { FiX, FiAward, FiChevronRight } from "react-icons/fi";
 
 export default function CertificatesPage() {
   const [modalSrc, setModalSrc] = useState("");
+  const [currentCertificateIndex, setCurrentCertificateIndex] = useState(0);
 
   const certificates = [
     "/images/balkishan_profile.jpeg",
@@ -22,6 +23,10 @@ export default function CertificatesPage() {
 
   // duplicate twice for smooth infinite scroll
   const scrollList = [...certificates, ...certificates, ...certificates];
+
+  const handleNextCertificate = () => {
+    setCurrentCertificateIndex((prev) => (prev + 1) % certificates.length);
+  };
 
   return (
     <section className="px-3 md:px-6 py-12 w-full overflow-hidden">
@@ -55,6 +60,17 @@ export default function CertificatesPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* NEXT BUTTON */}
+      <div className="flex justify-center mt-6">
+        <button
+          onClick={handleNextCertificate}
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md"
+        >
+          Next Achievement
+          <FiChevronRight size={20} />
+        </button>
       </div>
 
       {/* MODAL */}

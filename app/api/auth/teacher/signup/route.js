@@ -1,6 +1,7 @@
 // app/api/auth/teacher/signup/route.js
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
+import { sendCoachApplicationNotification } from '@/lib/email';
 
 export async function POST(request) {
   try {
@@ -10,7 +11,6 @@ export async function POST(request) {
       email,
       phone,
       location,
-      password,
       bio,
     } = await request.json();
 
@@ -46,7 +46,7 @@ export async function POST(request) {
       );
     }
 
-    // Insert new coach
+    // Insert new coach application
     const { data, error } = await supabase
       .from('coaches')
       .insert([
@@ -56,8 +56,6 @@ export async function POST(request) {
           email: normalizedEmail,
           phone: phone.trim(),
           location: location.trim(),
-          // if password is empty, we omit it so DB default 'Azroute@1234' is used
-          ...(password ? { password } : {}),
           bio: bio?.trim() || null,
         },
       ])
@@ -72,8 +70,22 @@ export async function POST(request) {
       );
     }
 
+    // Send email notification to the applicant
+    try {
+      await sendCoachApplicationNotification({
+        email: normalizedEmail,
+        name: name.trim(),
+        specialty: specialty.trim(),
+        phone: phone.trim(),
+        location: location.trim()
+      });
+    } catch (emailError) {
+      console.error('Failed to send coach application email:', emailError);
+      // Continue with response even if email fails
+    }
+
     return NextResponse.json({
-      message: 'Registration successful! You can now log in as a coach.',
+      message: 'Coach application submitted successfully! We will contact you soon.',
       coachId: data.id,
       coachDisplayId: data.coach_display_id,
     });

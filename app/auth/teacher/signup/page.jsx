@@ -15,7 +15,6 @@ const INITIAL_FORM_STATE = {
   email: '',
   phone: '',
   location: '',
-  password: '',
   bio: '',
 };
 
@@ -46,8 +45,6 @@ export default function TeacherSignup() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return 'Invalid email address';
     if (!formData.phone.trim()) return 'Phone is required';
     if (!formData.location.trim()) return 'Location is required';
-    // simple password: just required, no extra rules
-    if (!formData.password.trim()) return 'Password is required';
     return '';
   };
 
@@ -74,7 +71,6 @@ export default function TeacherSignup() {
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim(),
           location: formData.location.trim(),
-          password: formData.password, // plain text (Supabase will store as-is)
           bio: formData.bio.trim() || null,
         }),
       });
@@ -85,11 +81,7 @@ export default function TeacherSignup() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      setSuccess(data.message || 'Account created successfully');
-      router.push(
-        '/auth/teacher/login?success=' +
-          encodeURIComponent(data.message || 'Account created successfully')
-      );
+      setSuccess(data.message || 'Application submitted successfully! We will contact you soon.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -197,21 +189,6 @@ export default function TeacherSignup() {
               </div>
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">
-                Password <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="password"
-                type="password" // normal password field, no extra rules
-                value={formData.password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                placeholder="Choose a password"
-                required
-              />
-            </div>
-
             {/* Bio (optional) */}
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
@@ -224,14 +201,11 @@ export default function TeacherSignup() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Sign Up'}
+              {loading ? 'Submitting Application...' : 'Submit Application'}
             </Button>
 
             <div className="text-center text-sm">
-              Already have an account?{' '}
-              <Link href="/auth/teacher/login" className="text-blue-600 hover:underline">
-                Log in
-              </Link>
+              Thank you for your interest in joining Azroute!
             </div>
           </form>
         </CardContent>

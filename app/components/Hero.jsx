@@ -82,36 +82,20 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1 }}
-          className="flex flex-col sm:flex-row gap-14 justify-center mb-20"
+          className="flex justify-center mb-20"
         >
           {/* Live Classes */}
           <div className="flex flex-col items-center gap-2">
             <Search className="h-7 w-7 text-blue-200 hover:scale-110 transition-all duration-300" />
             <p className="text-blue-100 text-sm">Looking for classes?</p>
             <Button
-              
+              onClick={() => router.push("/screening/student-details")}
               size="lg"
-              className="h-14 px-8 text-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl shadow-lg transform transition-transform duration-300"
+              className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg transform transition-transform duration-300"
             >
               Free screening session
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-          </div>
-
-          {/* Coach */}
-          <div className="flex flex-col items-center gap-2">
-            <UserCheck className="h-7 w-7 text-blue-200 hover:scale-110 transition-all duration-300" />
-            <p className="text-blue-100 text-sm">Are you a coach?</p>
-           <Button
-  onClick={() => router.push("/auth/teacher/signup")} // Update to match the correct URL path
-  size="lg"
-  variant="outline"
-  className="h-14 px-8 text-lg bg-white text-[#1E3A8A] border border-blue-200 hover:bg-blue-50 rounded-xl shadow-lg transform transition-transform duration-300"
->
-  Teach on Azroute
-  <ArrowRight className="ml-2 h-5 w-5" />
-</Button>
-
           </div>
         </motion.div>
 
@@ -127,10 +111,10 @@ export default function Hero() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.15 }}
                 viewport={{ once: true }}
-                className="flex flex-col items-center text-center p-8 rounded-2xl bg-[#F0F9FF] border border-[#BFDBFE] shadow-md hover:shadow-lg transition duration-300"
+                className="flex flex-col items-center text-center p-8 rounded-2xl bg-[#F0F9FF] border border-primary/20 shadow-md hover:shadow-lg transition duration-300"
               >
-                <div className="p-4 rounded-full bg-blue-100 mb-6">
-                  <Icon className="h-8 w-8 text-blue-600 hover:scale-110 transition-all duration-300" />
+                <div className="p-4 rounded-full bg-primary/10 mb-6">
+                  <Icon className="h-8 w-8 text-primary hover:scale-110 transition-all duration-300" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-800">
                   {feature.title}

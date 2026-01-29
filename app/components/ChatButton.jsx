@@ -10,8 +10,8 @@ export default function ChatButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-6 bottom-6 z-[9999] bg-blue-600 hover:bg-blue-700 
-        text-white rounded-full w-16 h-16 shadow-2xl flex items-center justify-center 
+        className="fixed right-6 bottom-6 z-[9999] bg-primary hover:bg-primary/90 
+        text-primary-foreground rounded-full w-16 h-16 shadow-2xl flex items-center justify-center 
         transition-all duration-200 hover:scale-110"
       >
         {/* Professional AI Chat Icon */}

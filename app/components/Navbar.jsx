@@ -192,7 +192,7 @@ export function Navbar() {
 </Button>
 
               <Button
-                className="bg-blue-600 hover:bg-blue-700 rounded-full px-4 lg:px-6"
+                className="bg-primary hover:bg-primary/90 rounded-full px-4 lg:px-6"
                 onClick={() => router.push("/auth/student/signup")}
               >
                 Get Started
@@ -242,7 +242,7 @@ export function Navbar() {
                           href={item.href}
                           className="flex items-center gap-4 p-3 rounded-lg text-base font-medium hover:bg-gray-100 transition-colors"
                         >
-                          <item.icon className="h-5 w-5 text-blue-600" />
+                          <item.icon className="h-5 w-5 text-primary" />
                           <span className="truncate">{item.label}</span>
                         </Link>
                       </SheetClose>
@@ -254,7 +254,7 @@ export function Navbar() {
                           href="/profile"
                           className="flex items-center gap-4 p-3 rounded-lg text-base font-medium hover:bg-gray-100 transition-colors"
                         >
-                          <User className="h-5 w-5 text-blue-600" />
+                          <User className="h-5 w-5 text-primary" />
                           <span>Profile</span>
                         </Link>
                       </SheetClose>
@@ -314,7 +314,7 @@ export function Navbar() {
                           href={item.href}
                           className="flex items-center gap-4 p-3 rounded-lg text-base font-medium hover:bg-gray-100 transition-colors"
                         >
-                          <item.icon className="h-5 w-5 text-blue-600" />
+                          <item.icon className="h-5 w-5 text-primary" />
                           <span className="truncate">{item.label}</span>
                         </Link>
                       </SheetClose>
@@ -325,7 +325,7 @@ export function Navbar() {
                   <div className="p-5 border-t bg-gray-50">
                     <SheetClose asChild>
                       <Button
-                        className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-medium"
+                        className="w-full bg-primary hover:bg-primary/90 py-3 rounded-lg font-medium"
                         onClick={() => router.push("/auth/student/signup")}
                       >
                         Get Started Free
@@ -347,7 +347,7 @@ function NavLink({ href, icon: Icon, text }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-2 font-medium text-gray-700 hover:text-blue-600 whitespace-nowrap text-sm lg:text-base px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
+      className="flex items-center gap-2 font-medium text-gray-700 hover:text-primary whitespace-nowrap text-sm lg:text-base px-2 py-1 rounded-md hover:bg-gray-50 transition-colors"
     >
       <Icon className="h-4 w-4" />
       {text}
