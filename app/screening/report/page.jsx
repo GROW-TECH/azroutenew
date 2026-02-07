@@ -6,8 +6,40 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { ArrowLeft, Download, Mail, MessageCircle, FileText, CheckCircle } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
 
 export default function ScreeningReportPage() {
+    const saveScoreToSupabase = async (reportData) => {
+    try {
+      const studentId = sessionStorage.getItem('studentId');
+      if (!studentId) return;
+
+      const { error } = await supabase
+        .from('students')
+        .update({
+          screening_type: reportData.screeningType,
+          score: reportData.score,
+          total_questions: reportData.totalQuestions,
+          percentage: reportData.percentage,
+          level: reportData.level,
+          recommendation: reportData.recommendation,
+        })
+        .eq('id', studentId);
+
+      if (error) throw error;
+
+      console.log("Score saved to Supabase");
+    } catch (err) {
+      console.error("Supabase save error:", err.message);
+    }
+  };
+
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,39 +58,51 @@ export default function ScreeningReportPage() {
       return;
     }
     
-    setReport(JSON.parse(reportData));
+    const parsedReport = JSON.parse(reportData);
+setReport(parsedReport);
+saveScoreToSupabase(parsedReport);
+
   }, [router]);
 
   const sendNotifications = async () => {
-    setLoading(true);
-    setError('');
+  setLoading(true);
+  setError('');
 
-    try {
-      const studentData = JSON.parse(sessionStorage.getItem('studentDetails'));
-      
-      // Send notifications via API
-      const response = await fetch('/api/screening/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentData,
-          report,
-          notifications: ['email', 'whatsapp', 'admin']
-        })
-      });
+  try {
+    const studentData = JSON.parse(sessionStorage.getItem('studentDetails'));
 
-      if (!response.ok) {
-        throw new Error('Failed to send notifications');
-      }
+    // existing API (admin + whatsapp etc)
+    await fetch('/api/screening/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentData,
+        report,
+        notifications: ['email', 'whatsapp', 'admin']
+      })
+    });
 
-      setNotificationsSent(true);
-      setShowPopup(true);
-    } catch (err) {
-      setError('Failed to send notifications. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 🟢 ADD THIS BLOCK → send email to student
+    await fetch('/api/send-student-mail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        studentEmail: studentData.email,
+        studentName: studentData.studentName,
+        report: report,
+      }),
+    });
+
+    setNotificationsSent(true);
+    setShowPopup(true);
+
+  } catch (err) {
+    setError('Failed to send notifications. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const downloadReport = () => {
     if (!report) return;

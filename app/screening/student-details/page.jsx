@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/app/components/ui/input';
 import { Label } from '@/app/components/ui/label';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
 
 const INITIAL_FORM_STATE = {
   studentName: '',
@@ -29,7 +30,7 @@ export default function StudentDetailsPage() {
   const [error, setError] = useState('');
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
-  useState(() => {
+  useEffect(() => {
     setMounted(true);
   }, []);
 
@@ -55,20 +56,56 @@ export default function StudentDetailsPage() {
     return '';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    // Store form data in sessionStorage for next step
-    sessionStorage.setItem('studentDetails', JSON.stringify(formData));
-    
-    // Navigate to chess knowledge check
-    router.push('/screening/chess-knowledge');
+    setLoading(true);
+
+    try {
+      // ✅ Save to Supabase and get inserted student id
+      const { data, error: supabaseError } = await supabase
+        .from('students')
+        .insert([
+          {
+            student_name: formData.studentName,
+            parent_name: formData.parentName,
+            date_of_birth: formData.dateOfBirth,
+            gender: formData.gender,
+            fide_rating: formData.fideRating,
+            location: formData.location,
+            email: formData.email,
+            phone_number: formData.phoneNumber,
+            primary_goal: formData.primaryGoal,
+            convenient_time: formData.convenientTime,
+          },
+        ])
+        .select()
+        .single();
+
+      if (supabaseError) {
+        console.error(supabaseError);
+        setError('Failed to save data. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Save studentId and details in sessionStorage
+      sessionStorage.setItem('studentId', data.id);
+      sessionStorage.setItem('studentDetails', JSON.stringify(formData));
+      router.push('/screening/chess-knowledge');
+
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!mounted) return null;
@@ -76,8 +113,8 @@ export default function StudentDetailsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => router.back()}
           className="mb-4"
         >

@@ -10,72 +10,60 @@ import { ArrowLeft, Crown, BookOpen } from 'lucide-react';
 export default function ChessBasicsScreening() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
-
-  const basicsQuestions = [
-    {
-      question: "Chess is played on a board with how many squares?",
-      options: ["32 squares", "48 squares", "64 squares", "72 squares"],
-      correct: 2,
-      explanation: "A chess board has 64 squares (8x8 grid)"
-    },
-    {
-      question: "Each player starts with how many pieces?",
-      options: ["12 pieces", "14 pieces", "16 pieces", "18 pieces"],
-      correct: 2,
-      explanation: "Each player starts with 16 pieces: 1 king, 1 queen, 2 rooks, 2 bishops, 2 knights, and 8 pawns"
-    },
-    {
-      question: "Which piece can only move diagonally?",
-      options: ["Rook", "Knight", "Bishop", "Queen"],
-      correct: 2,
-      explanation: "The bishop can only move diagonally across the board"
-    },
-    {
-      question: "What is the goal of chess?",
-      options: ["Capture all opponent pieces", "Control the center", "Checkmate the opponent's king", "Promote all pawns"],
-      correct: 2,
-      explanation: "The goal is to checkmate the opponent's king - put it in check with no way to escape"
-    },
-    {
-      question: "Which piece moves in an 'L' shape?",
-      options: ["Bishop", "Knight", "Rook", "Pawn"],
-      correct: 1,
-      explanation: "The knight moves in an 'L' shape: two squares in one direction and one square perpendicular"
-    }
-  ];
+  const [basicsQuestions, setBasicsQuestions] = useState([]);
 
   useEffect(() => {
     setMounted(true);
+
     const data = sessionStorage.getItem('studentDetails');
     const chessKnowledge = sessionStorage.getItem('chessKnowledge');
     if (!data || chessKnowledge !== 'no') {
       router.push('/screening/student-details');
       return;
     }
+
+    loadQuestions();
   }, [router]);
+
+async function loadQuestions() {
+  try {
+    const res = await fetch('/api/chess-questions');
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      throw new Error("Invalid AI response");
+    }
+
+    setBasicsQuestions(data);
+    setLoading(false);
+  } catch (err) {
+    setError("Failed to load AI questions");
+    setLoading(false);
+  }
+}
+
 
   const handleAnswer = (answerIndex) => {
     const newAnswers = [...answers, answerIndex];
     setAnswers(newAnswers);
 
+    let newScore = score;
     if (answerIndex === basicsQuestions[currentQuestion].correct) {
-      setScore(score + 1);
+      newScore++;
+      setScore(newScore);
     }
 
     if (currentQuestion < basicsQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setShowResults(true);
-      generateScreeningReport(
-        newAnswers,
-        score + (answerIndex === basicsQuestions[currentQuestion].correct ? 1 : 0)
-      );
+      generateScreeningReport(newAnswers, newScore);
     }
   };
 
@@ -94,7 +82,7 @@ export default function ChessBasicsScreening() {
 
     const report = {
       studentName: studentData.studentName,
-      screeningType: "Chess Basics Q&A",
+      screeningType: "Chess Basics (AI)",
       score: finalScore,
       totalQuestions: basicsQuestions.length,
       percentage: percentage.toFixed(1),
@@ -112,6 +100,14 @@ export default function ChessBasicsScreening() {
   };
 
   if (!mounted) return null;
+
+  if (loading) {
+    return <div className="text-center p-10">Loading AI questions...</div>;
+  }
+  if (!basicsQuestions.length) {
+  return <div className="text-center p-10">No questions available</div>;
+}
+
 
   if (showResults) {
     const percentage = (score / basicsQuestions.length) * 100;
@@ -191,7 +187,6 @@ export default function ChessBasicsScreening() {
               <Button
                 key={index}
                 onClick={() => handleAnswer(index)}
-                disabled={loading}
                 variant="outline"
                 className="w-full h-auto p-4 text-left justify-start hover:bg-primary hover:text-primary-foreground transition-colors"
               >
