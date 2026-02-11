@@ -1,129 +1,87 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import { ArrowLeft, Download, Mail, MessageCircle, FileText, CheckCircle } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import { ArrowLeft, Download, Mail, FileText, CheckCircle } from "lucide-react";
 
 export default function ScreeningReportPage() {
-    const saveScoreToSupabase = async (reportData) => {
-    try {
-      const studentId = sessionStorage.getItem('studentId');
-      if (!studentId) return;
-
-      const { error } = await supabase
-        .from('students')
-        .update({
-          screening_type: reportData.screeningType,
-          score: reportData.score,
-          total_questions: reportData.totalQuestions,
-          percentage: reportData.percentage,
-          level: reportData.level,
-          recommendation: reportData.recommendation,
-        })
-        .eq('id', studentId);
-
-      if (error) throw error;
-
-      console.log("Score saved to Supabase");
-    } catch (err) {
-      console.error("Supabase save error:", err.message);
-    }
-  };
-
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [report, setReport] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [notificationsSent, setNotificationsSent] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const reportData = sessionStorage.getItem('screeningReport');
-    const studentData = sessionStorage.getItem('studentDetails');
-    
+
+    const reportData = sessionStorage.getItem("screeningReport");
+    const studentData = sessionStorage.getItem("studentDetails");
+
     if (!reportData || !studentData) {
-      router.push('/screening/student-details');
+      router.push("/screening/student-details");
       return;
     }
-    
-    const parsedReport = JSON.parse(reportData);
-setReport(parsedReport);
-saveScoreToSupabase(parsedReport);
 
+    setReport(JSON.parse(reportData));
   }, [router]);
 
   const sendNotifications = async () => {
-  setLoading(true);
-  setError('');
+    setLoading(true);
+    setError("");
 
-  try {
-    const studentData = JSON.parse(sessionStorage.getItem('studentDetails'));
+    try {
+      const studentData = JSON.parse(sessionStorage.getItem("studentDetails"));
 
-    // existing API (admin + whatsapp etc)
-    await fetch('/api/screening/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        studentData,
-        report,
-        notifications: ['email', 'whatsapp', 'admin']
-      })
-    });
+      const res = await fetch("/api/send-student-mail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentEmail: studentData.email,
+          studentData,
+          report,
+        }),
+      });
 
-    // 🟢 ADD THIS BLOCK → send email to student
-    await fetch('/api/send-student-mail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        studentEmail: studentData.email,
-        studentName: studentData.studentName,
-        report: report,
-      }),
-    });
+      const json = await res.json().catch(() => ({}));
 
-    setNotificationsSent(true);
-    setShowPopup(true);
+      if (!res.ok) {
+        throw new Error(json?.message || "Failed to send mail");
+      }
 
-  } catch (err) {
-    setError('Failed to send notifications. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setNotificationsSent(true);
+      setShowPopup(true);
+    } catch (err) {
+      setError(err?.message || "Failed to send notifications. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const downloadReport = () => {
     if (!report) return;
-    
+
     const reportContent = `
 AZROUTE CHESS INSTITUTE - SCREENING REPORT
 ==========================================
 
-Student Name: ${report.studentName}
-Screening Type: ${report.screeningType}
-Date: ${new Date(report.completedAt).toLocaleDateString()}
+Student Name: ${report.studentName || "-"}
+Screening Type: ${report.screeningType || "-"}
+Date: ${report.completedAt ? new Date(report.completedAt).toLocaleDateString() : new Date().toLocaleDateString()}
 
 RESULTS:
 --------
 Score: ${report.score}/${report.totalQuestions}
 Percentage: ${report.percentage}%
-Level: ${report.level}
+Level: ${report.level || "-"}
 
 RECOMMENDATION:
 ---------------
-${report.recommendation}
+${report.recommendation || "-"}
 
 ASSESSMENT DETAILS:
 -------------------
@@ -137,27 +95,24 @@ NEXT STEPS:
 4. Schedule your first class
 
 For questions, contact: support@azroutechess.com
-    `.trim();
+`.trim();
 
-    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const blob = new Blob([reportContent], { type: "text/plain" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `azroute-screening-report-${report.studentName.replace(/\s+/g, '-').toLowerCase()}.txt`;
+    a.download = `azroute-screening-report-${(report.studentName || "student")
+      .replace(/\s+/g, "-")
+      .toLowerCase()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
 
-  const openGreetingBrochure = () => {
-    // Open greeting brochure in new tab
-    window.open('/greeting-brochure', '_blank');
-  };
-
   const handleContinue = () => {
     setShowPopup(false);
-    openGreetingBrochure();
+    window.open("/greeting-brochure", "_blank");
   };
 
   if (!mounted || !report) return null;
@@ -165,14 +120,11 @@ For questions, contact: support@azroutechess.com
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
+
         <h1 className="text-3xl font-bold text-center mb-2">Screening Report</h1>
         <p className="text-center text-muted-foreground">Step 3: Your Assessment Results</p>
       </div>
@@ -184,7 +136,6 @@ For questions, contact: support@azroutechess.com
       )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Report Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -197,11 +148,9 @@ For questions, contact: support@azroutechess.com
               <div className="text-4xl font-bold text-primary mb-2">
                 {report.score}/{report.totalQuestions}
               </div>
-              <div className="text-xl text-muted-foreground">
-                {report.percentage}% Score
-              </div>
+              <div className="text-xl text-muted-foreground">{report.percentage}% Score</div>
             </div>
-            
+
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-medium">Screening Type:</span>
@@ -213,13 +162,14 @@ For questions, contact: support@azroutechess.com
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-medium">Date:</span>
-                <span>{new Date(report.completedAt).toLocaleDateString()}</span>
+                <span>
+                  {report.completedAt ? new Date(report.completedAt).toLocaleDateString() : "-"}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Recommendation Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -229,11 +179,9 @@ For questions, contact: support@azroutechess.com
           </CardHeader>
           <CardContent>
             <div className="bg-muted p-4 rounded-lg">
-              <p className="text-sm leading-relaxed">
-                {report.recommendation}
-              </p>
+              <p className="text-sm leading-relaxed">{report.recommendation}</p>
             </div>
-            
+
             <div className="mt-4 space-y-2">
               <h4 className="font-semibold">Next Steps:</h4>
               <ul className="text-sm space-y-1 text-muted-foreground">
@@ -247,51 +195,38 @@ For questions, contact: support@azroutechess.com
         </Card>
       </div>
 
-      {/* Actions */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Complete Your Screening</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
-            <Button
-              onClick={downloadReport}
-              variant="outline"
-              className="w-full"
-            >
+            <Button onClick={downloadReport} variant="outline" className="w-full">
               <Download className="mr-2 h-4 w-4" />
               Download Report
             </Button>
-            
-            <Button
-              onClick={sendNotifications}
-              disabled={loading || notificationsSent}
-              className="w-full"
-            >
-              {loading ? 'Sending...' : notificationsSent ? 'Notifications Sent' : (
+
+            <Button onClick={sendNotifications} disabled={loading || notificationsSent} className="w-full">
+              {loading ? "Sending..." : notificationsSent ? "Notifications Sent" : (
                 <>
                   <Mail className="mr-2 h-4 w-4" />
-                  Send Notifications
+                  Send Report Mail
                 </>
               )}
             </Button>
           </div>
-          
+
           {notificationsSent && (
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-2 text-green-700">
                 <CheckCircle className="h-4 w-4" />
-                <span className="font-medium">Notifications sent successfully!</span>
+                <span className="font-medium">Mail sent successfully!</span>
               </div>
-              <p className="text-sm text-green-600 mt-1">
-                WhatsApp, Email, and Admin notifications have been sent.
-              </p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Popup Modal */}
       {showPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <Card className="w-full max-w-md">

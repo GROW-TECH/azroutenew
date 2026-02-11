@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { Button } from '@/app/components/ui/button';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { ArrowLeft, Trophy, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; // ✅ ADDED
+import { supabase } from '@/lib/supabaseClient';
 
 export default function RookieLevelScreening() {
   const router = useRouter();
@@ -68,10 +68,10 @@ export default function RookieLevelScreening() {
     }
   };
 
-  // ✅ UPDATED: STORE FINAL SCORE IN SUPABASE
+  // ✅ SAVE REPORT + SEND EMAIL IMMEDIATELY (Correct)
   const generateScreeningReport = async (finalAnswers, finalScore) => {
     const studentId = sessionStorage.getItem('studentId');
-    const studentData = JSON.parse(sessionStorage.getItem('studentDetails'));
+    const studentData = JSON.parse(sessionStorage.getItem('studentDetails') || '{}');
 
     const percentage = (finalScore / questions.length) * 100;
 
@@ -87,7 +87,7 @@ export default function RookieLevelScreening() {
       recommendation = 'Recommended to start with basic chess fundamentals';
     }
 
-    // ✅ UPDATE SAME STUDENT ROW
+    // ✅ UPDATE SAME STUDENT ROW IN SUPABASE
     const { error } = await supabase
       .from('students')
       .update({
@@ -104,6 +104,7 @@ export default function RookieLevelScreening() {
       console.error('Failed to save screening result:', error);
     }
 
+    // ✅ Create report object (Correct data)
     const report = {
       studentName: studentData.studentName,
       screeningType: 'Rookie Level (AI)',
@@ -116,7 +117,45 @@ export default function RookieLevelScreening() {
       completedAt: new Date().toISOString(),
     };
 
+    // ✅ Save report
     sessionStorage.setItem('screeningReport', JSON.stringify(report));
+
+    // ✅ Prevent duplicate send (refresh / back)
+    const alreadySent = sessionStorage.getItem('rookieMailSent');
+    if (alreadySent === 'true') return;
+
+    // ✅ Get email safely (your studentDetails must have email)
+    const studentEmail =
+      studentData.email || studentData.studentEmail || studentData.mail || '';
+
+    if (!studentEmail) {
+      console.error('Student email missing in studentDetails:', studentData);
+      return;
+    }
+
+    // ✅ Send mail with SAME report (No wrong output)
+    try {
+      const res = await fetch('/api/send-student-mail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentEmail,
+          studentData,
+          report,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        console.error('Mail API failed:', json);
+        return;
+      }
+
+      sessionStorage.setItem('rookieMailSent', 'true');
+      console.log('✅ Screening mail sent');
+    } catch (e) {
+      console.error('❌ Screening mail failed:', e);
+    }
   };
 
   const handleContinue = () => {
@@ -150,9 +189,7 @@ export default function RookieLevelScreening() {
               <div className="text-6xl font-bold text-primary">
                 {score}/{questions.length}
               </div>
-              <div className="text-xl">
-                Score: {percentage.toFixed(1)}%
-              </div>
+              <div className="text-xl">Score: {percentage.toFixed(1)}%</div>
 
               <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">Assessment Result:</h3>
