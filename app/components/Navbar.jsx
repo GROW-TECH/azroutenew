@@ -92,13 +92,13 @@ export function Navbar() {
     { label: "Explore", href: "/explore", icon: Globe },
     { label: "Our Coaches", href: "/teachers", icon: GraduationCap },
     { label: "About us", href: "/about", icon: GraduationCap },
-    { label: "Fee structure", href: "/feestrcture", icon: GraduationCap },
+    { label: "Fee structure", href: "/feestructure", icon: GraduationCap },
   ];
 
   // Add extra items for non-logged in users on mobile
   if (!user) {
     mobileItems.push(
-      { label: "Coach on Azroute", href: "/auth/teacher/login", icon: BookOpen },
+      { label: "Coach on Azroute", href: "/auth/teacher/signup", icon: BookOpen },
       { label: "Shop", href: "/shop", icon: ShoppingBag }
     );
   }
@@ -128,12 +128,12 @@ export function Navbar() {
           <NavLink href="/explore" icon={Globe} text="Explore" />
           <NavLink href="/teachers" icon={GraduationCap} text="Our Coaches" />
           <NavLink href="/about" icon={GraduationCap} text="About us" />
-          <NavLink href="/feestrcture" icon={GraduationCap} text="Fee structure" />
+          <NavLink href="/feestructure" icon={GraduationCap} text="Fee structure" />
 
           {!user && (
             <>
               <NavLink
-                href="/auth/teacher/login"
+                href="/auth/teacher/signup"
                 icon={BookOpen}
                 text="Coach on Azroute"
               />

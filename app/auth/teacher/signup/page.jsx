@@ -95,9 +95,9 @@ export default function TeacherSignup() {
     <div className="container mx-auto px-4 py-6 flex items-center justify-center min-h-screen">
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Create Coach Account</CardTitle>
+          <CardTitle className="text-2xl text-center">Apply to become a coach</CardTitle>
           <CardDescription className="text-center">
-            Enter your details to create a coach account
+            Enter your details to Apply to become a coach
           </CardDescription>
         </CardHeader>
 
@@ -201,12 +201,23 @@ export default function TeacherSignup() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Submitting Application...' : 'Submit Application'}
-            </Button>
+  {loading ? 'Submitting Application...' : 'Submit Application'}
+</Button>
 
-            <div className="text-center text-sm">
-              Thank you for your interest in joining Azroute!
-            </div>
+<div className="mt-2 text-sm flex items-center justify-center gap-3">
+  <span className="text-gray-600">
+    Thank you for your interest in joining Azroute!
+  </span>
+
+  <Link href="/auth/teacher/login">
+    <Button variant="outline" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+      Login
+    </Button>
+  </Link>
+</div>
+
+
+
           </form>
         </CardContent>
       </Card>

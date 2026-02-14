@@ -36,7 +36,7 @@ const Sidebar = () => {
     { icon: BookOpen, label: "Tournament Recommendations", href: "/dashboard/student/tournament-recommendations" },
     { icon: BarChart3, label: "Course Progress", href: "/dashboard/student/progress" },
     { icon: BarChart3, label: "Progress Tracker", href: "/dashboard/student/tracker" },
-    { icon: Video, label: "Free Demo Class", href: "/dashboard/student/demo-class" },
+    // { icon: Video, label: "Free Demo Class", href: "/dashboard/student/demo-class" },
     { icon: Video, label: "Compensation Scheduled", href: "/dashboard/student/compensation" },
     { icon: CalendarClock, label: "Schedule", href: "/dashboard/student/schedule" },
     { icon: CreditCard, label: "Payment", href: "/dashboard/student/Payment" },

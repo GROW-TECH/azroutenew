@@ -38,107 +38,153 @@ export default function StudentAttendancePage() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
+    if (!session?.user?.email) return;
 
     const fetchAttendance = async () => {
       setLoading(true);
 
-      /* ================= STUDENT ================= */
-      const { data: student } = await supabase
-        .from("student_list")
-        .select("id")
-        .eq("email", session.user.email)
-        .single();
+      try {
+        /* ================= STUDENT ================= */
+        const { data: student, error: studentErr } = await supabase
+          .from("student_list")
+          .select("id")
+          .eq("email", session.user.email)
+          .single();
 
-      if (!student) {
-        setLoading(false);
-        return;
-      }
-
-      /* ================= DATE RANGE ================= */
-      const startDate = `${selectedMonth}-01`;
-      const endDate = new Date(
-        new Date(startDate).getFullYear(),
-        new Date(startDate).getMonth() + 1,
-        0
-      )
-        .toISOString()
-        .slice(0, 10);
-
-      /* ================= ATTENDANCE ================= */
-      const { data: attendance } = await supabase
-        .from("coach_student_attendance")
-        .select("date, status")
-        .eq("student_id", student.id)
-        .gte("date", startDate)
-        .lte("date", endDate);
-
-      setAttendanceRows(attendance || []); // ✅ store raw rows
-
-      /* ================= COUNT ================= */
-      const counts = {
-        present: 0,
-        absent: 0,
-        excused: 0,
-        unexcused: 0,
-        compensation: 0,
-      };
-
-      attendance?.forEach((row) => {
-        if (counts[row.status] !== undefined) {
-          counts[row.status]++;
+        if (studentErr || !student) {
+          console.error("Student fetch error:", studentErr);
+          setAttendanceRows([]);
+          setChartData([]);
+          setLoading(false);
+          return;
         }
-      });
 
-      const year = Number(selectedMonth.split("-")[0]);
-      const month = Number(selectedMonth.split("-")[1]);
-      const totalDaysInMonth = new Date(year, month, 0).getDate();
+        /* ================= DATE RANGE ================= */
+        const startDate = `${selectedMonth}-01`;
+        const endDate = new Date(
+          new Date(startDate).getFullYear(),
+          new Date(startDate).getMonth() + 1,
+          0
+        )
+          .toISOString()
+          .slice(0, 10);
 
-      /* ================= SET DAY STATS ================= */
-      setDayStats({
-        totalDays: totalDaysInMonth,
-        markedDays: attendance?.length || 0,
-        present: counts.present,
-        absent: counts.absent,
-        excused: counts.excused,
-        unexcused: counts.unexcused,
-        compensation: counts.compensation,
-      });
+        /* ================= ATTENDANCE ================= */
+        const { data: attendance, error: attErr } = await supabase
+          .from("coach_student_attendance")
+          .select("date, status")
+          .eq("student_id", student.id)
+          .gte("date", startDate)
+          .lte("date", endDate);
 
-      /* ================= BAR CHART DATA (%) ================= */
-      setChartData([
-        { name: "Present", value: Math.round((counts.present / totalDaysInMonth) * 100) },
-        { name: "Absent", value: Math.round((counts.absent / totalDaysInMonth) * 100) },
-        { name: "Excused", value: Math.round((counts.excused / totalDaysInMonth) * 100) },
-        { name: "Unexcused", value: Math.round((counts.unexcused / totalDaysInMonth) * 100) },
-        { name: "Compensation", value: Math.round((counts.compensation / totalDaysInMonth) * 100) },
-      ]);
+        if (attErr) {
+          console.error("Attendance fetch error:", attErr);
+          setAttendanceRows([]);
+          setChartData([]);
+          setLoading(false);
+          return;
+        }
 
-      setLoading(false);
+        setAttendanceRows(attendance || []);
+
+        /* ================= COUNT ================= */
+        const counts = {
+          present: 0,
+          absent: 0,
+          excused: 0,
+          unexcused: 0,
+          compensation: 0,
+        };
+
+        (attendance || []).forEach((row) => {
+          if (row?.status && counts[row.status] !== undefined) {
+            counts[row.status]++;
+          }
+        });
+
+        const year = Number(selectedMonth.split("-")[0]);
+        const month = Number(selectedMonth.split("-")[1]);
+        const totalDaysInMonth = new Date(year, month, 0).getDate();
+
+        /* ================= SET DAY STATS ================= */
+        setDayStats({
+          totalDays: totalDaysInMonth,
+          markedDays: attendance?.length || 0,
+          present: counts.present,
+          absent: counts.absent,
+          excused: counts.excused,
+          unexcused: counts.unexcused,
+          compensation: counts.compensation,
+        });
+
+        /* ================= BAR CHART DATA (%) ================= */
+        const safePercent = (n) =>
+          totalDaysInMonth ? Math.round((n / totalDaysInMonth) * 100) : 0;
+
+        setChartData([
+          { name: "Present", value: safePercent(counts.present) },
+          { name: "Absent", value: safePercent(counts.absent) },
+          { name: "Excused", value: safePercent(counts.excused) },
+          { name: "Unexcused", value: safePercent(counts.unexcused) },
+          { name: "Compensation", value: safePercent(counts.compensation) },
+        ]);
+      } catch (e) {
+        console.error("fetchAttendance error:", e);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAttendance();
   }, [status, session, selectedMonth]);
 
-  /* ================= DOWNLOAD CSV ================= */
+  /* ================= DOWNLOAD CSV ✅ FIXED ================= */
   const downloadCSV = () => {
-    if (attendanceRows.length === 0) return;
+    try {
+      if (!attendanceRows || attendanceRows.length === 0) {
+        alert("No attendance data to download");
+        return;
+      }
 
-    const headers = ["Date", "Status"];
-    const rows = attendanceRows.map((r) => [r.date, r.status]);
+      const headers = ["Date", "Status"];
 
-    const csvContent =
-      [headers, ...rows].map((e) => e.join(",")).join("\n");
+      const rows = attendanceRows.map((r) => {
+        const date = r?.date ? String(r.date).slice(0, 10) : ""; // ✅ yyyy-mm-dd
+        const status = r?.status ? String(r.status) : "";
+        return [date, status];
+      });
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+      const csvContent = [headers, ...rows]
+        .map((row) =>
+          row
+            .map((cell) => `"${String(cell).replaceAll('"', '""')}"`) // ✅ csv safe
+            .join(",")
+        )
+        .join("\n");
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `attendance-${selectedMonth}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `attendance-${selectedMonth}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      window.URL.revokeObjectURL(url); // ✅ IMPORTANT (memory + proper cleanup)
+    } catch (e) {
+      console.error("CSV download failed:", e);
+      alert("CSV download failed");
+    }
   };
+
+  if (status !== "authenticated") {
+    return <p className="text-center mt-10">Please login...</p>;
+  }
 
   if (loading) {
     return <p className="text-center mt-10">Loading...</p>;
@@ -161,6 +207,7 @@ export default function StudentAttendancePage() {
 
         {/* ✅ DOWNLOAD BUTTON */}
         <button
+          type="button"
           onClick={downloadCSV}
           className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
         >
@@ -171,22 +218,28 @@ export default function StudentAttendancePage() {
       {/* ================= DAY CALCULATION ================= */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-center mb-5">
         <div className="bg-gray-100 p-2 rounded">
-          📅 Total Days<br /><b>{dayStats.totalDays}</b>
+          📅 Total Days<br />
+          <b>{dayStats.totalDays}</b>
         </div>
         <div className="bg-blue-100 p-2 rounded">
-          📝 Marked Days<br /><b>{dayStats.markedDays}</b>
+          📝 Marked Days<br />
+          <b>{dayStats.markedDays}</b>
         </div>
         <div className="bg-green-100 p-2 rounded">
-          ✅ Present<br /><b>{dayStats.present}</b>
+          ✅ Present<br />
+          <b>{dayStats.present}</b>
         </div>
         <div className="bg-red-100 p-2 rounded">
-          ❌ Absent<br /><b>{dayStats.absent}</b>
+          ❌ Absent<br />
+          <b>{dayStats.absent}</b>
         </div>
         <div className="bg-yellow-100 p-2 rounded">
-          🟡 Excused<br /><b>{dayStats.excused}</b>
+          🟡 Excused<br />
+          <b>{dayStats.excused}</b>
         </div>
         <div className="bg-purple-100 p-2 rounded">
-          🎯 Compensation<br /><b>{dayStats.compensation}</b>
+          🎯 Compensation<br />
+          <b>{dayStats.compensation}</b>
         </div>
       </div>
 

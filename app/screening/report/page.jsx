@@ -54,7 +54,10 @@ export default function ScreeningReportPage() {
       }
 
       setNotificationsSent(true);
-      setShowPopup(true);
+      setTimeout(() => {
+  router.push("/feestructure");
+}, 1000);
+      // setShowPopup(true);
     } catch (err) {
       setError(err?.message || "Failed to send notifications. Please try again.");
     } finally {

@@ -1,12 +1,11 @@
-export default function FeesStructurePage() {
-  return (
-    <div className="bg-white text-black py-16 px-6 md:px-16">
+export const dynamic = "force-dynamic";
 
+export default function feestructurePage() {
+  return (
+    <div className="min-h-screen bg-white text-black py-16 px-6 md:px-16">
       {/* PAGE TITLE */}
       <div className="text-center mb-14">
-        <h1 className="text-4xl font-bold mb-3">
-          Registration & Fee Structure
-        </h1>
+        <h1 className="text-4xl font-bold mb-3">Registration & Fee Structure</h1>
         <p className="text-gray-700">
           Clear and transparent coaching fees for all levels
         </p>
@@ -20,7 +19,6 @@ export default function FeesStructurePage() {
 
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm text-center">
-            {/* TABLE HEADER - BLUE */}
             <thead className="bg-blue-600 text-white">
               <tr>
                 <th className="border px-4 py-3">Stage</th>
@@ -30,7 +28,6 @@ export default function FeesStructurePage() {
               </tr>
             </thead>
 
-            {/* TABLE BODY - BLACK */}
             <tbody>
               {[
                 ["Rookie", "New (0)", "1500", "500"],
@@ -53,15 +50,14 @@ export default function FeesStructurePage() {
           </table>
         </div>
 
-        {/* NOTES - BLACK */}
         <div className="mt-6 text-sm text-black space-y-2">
           <p>
-            <b>Indian Time Discount:</b> Overseas students attending between
-            <b> 9 AM – 9 PM IST</b> can avail Indian fee structure.
+            <b>Indian Time Discount:</b> Overseas students attending between{" "}
+            <b>9 AM – 9 PM IST</b> can avail Indian fee structure.
           </p>
           <p>
-            <b>Class Duration:</b> 1 hour (Intermediate & Advanced 1-on-1:
-            90 minutes).
+            <b>Class Duration:</b> 1 hour (Intermediate & Advanced 1-on-1: 90
+            minutes).
           </p>
           <p>
             <b>Registration Fee:</b> One-time registration fee of <b>$12</b>.
@@ -77,7 +73,6 @@ export default function FeesStructurePage() {
 
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm text-center">
-            {/* TABLE HEADER - BLUE */}
             <thead className="bg-blue-600 text-white">
               <tr>
                 <th className="border px-4 py-3">Stage</th>
@@ -87,7 +82,6 @@ export default function FeesStructurePage() {
               </tr>
             </thead>
 
-            {/* TABLE BODY - BLACK */}
             <tbody>
               {[
                 ["Rookie", "New (0)", "30", "12"],
@@ -110,15 +104,14 @@ export default function FeesStructurePage() {
           </table>
         </div>
 
-        {/* NOTES - BLACK */}
         <div className="mt-6 text-sm text-black space-y-2">
           <p>
-            <b>Indian Time Discount:</b> Overseas students attending between
-            <b> 9 AM – 9 PM IST</b> can avail Indian fee structure.
+            <b>Indian Time Discount:</b> Overseas students attending between{" "}
+            <b>9 AM – 9 PM IST</b> can avail Indian fee structure.
           </p>
           <p>
-            <b>Class Duration:</b> 1 hour (Intermediate & Advanced 1-on-1:
-            90 minutes).
+            <b>Class Duration:</b> 1 hour (Intermediate & Advanced 1-on-1: 90
+            minutes).
           </p>
           <p>
             <b>Registration Fee:</b> One-time registration fee of <b>$12</b>.

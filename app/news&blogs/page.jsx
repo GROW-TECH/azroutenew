@@ -44,10 +44,13 @@ export default function NewsBlogsPage() {
       <section className="max-w-7xl mx-auto px-6 py-24 flex justify-center items-center">
         <div className="flex gap-12 flex-wrap justify-center">
 
-          {/* BLOGS */}
-          <div className="w-[260px] h-[160px] bg-white rounded-2xl flex items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition">
-            <h2 className="text-lg font-semibold tracking-wide">BLOG&apos;S</h2>
-          </div>
+         {/* BLOGS (CLICKABLE) */}
+<Link href="/blogs">
+  <div className="w-[260px] h-[160px] bg-white rounded-2xl flex items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition">
+    <h2 className="text-lg font-semibold tracking-wide">BLOG&apos;S</h2>
+  </div>
+</Link>
+
 
           {/* INTERACTIVE */}
           <div className="w-[260px] h-[160px] bg-white rounded-2xl flex items-center justify-center shadow-xl cursor-pointer hover:scale-105 transition">

@@ -14,6 +14,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await fetch("/api/student/profile", { credentials: "include" });
       if (res.ok) {
+
+        if (res.status === 401) return;
+        
         const data = await res.json();
         setStudent(data); // Supabase student object
       } else {

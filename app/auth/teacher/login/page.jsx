@@ -232,12 +232,12 @@ function LoginFormContent() {
           {loading ? "Logging in..." : "Log In"}
         </Button>
 
-        <div className="text-center text-sm">
+        {/* <div className="text-center text-sm">
           Don't have an account?{" "}
           <Link href="/auth/teacher/signup" className="text-blue-600 hover:underline">
             Sign up
           </Link>
-        </div>
+        </div> */}
       </form>
     </div>
   );
